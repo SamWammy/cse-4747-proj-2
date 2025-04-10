@@ -9,6 +9,7 @@ import pickle
 import sys
 
 def ldaLearn(X,y):
+
     # Inputs
     # X - a N x d matrix with each row corresponding to a training example
     # y - a N x 1 column vector indicating the labels for each training example
@@ -18,6 +19,27 @@ def ldaLearn(X,y):
     # covmat - A single d x d learnt covariance matrix 
     
     # IMPLEMENT THIS METHOD 
+
+    samples, features = X.shape
+    classes = np.unique(y)
+    numbclasses= len(classes)
+
+    means = np.zeros((features,numbclasses))
+
+    for i in range(len(classes)):
+        clas = classes[i]
+        means[:, i] = np.mean(X[y== clas], axis=0)
+    covmat = np.zeros((features, features))
+
+    for i in range(len(classes)):
+        clas = classes[i]
+        x_class= X[y==clas]
+        n_class= x_class.shape[0]
+        x_centered= x_class - means[:,i].reshape(1,-1)
+        class_covearience= (x_centered.T @ x_centered ) / n_class
+
+        covmat+=(n_class / samples) * class_covearience
+
     return means,covmat
 
 def qdaLearn(X,y):
@@ -30,6 +52,24 @@ def qdaLearn(X,y):
     # covmats - A list of k d x d learnt covariance matrices for each of the k classes
     
     # IMPLEMENT THIS METHOD
+    # get deminitions of the training data
+    samples, features = X.shape 
+    classes = np.unique(y)
+    num_classes= len(classes)
+    means = np.zeros((features, num_classes)) # this is means matrix initially
+    covmats = []
+
+
+    for i in range(len(classes)):
+        clas =classes[i]
+        x_class= X[y==clas]
+        means[:, i] = np.mean(x_class,axis=0)
+
+        x_centered = x_class - means[:,i].reshape(1,-1)
+        class_cov = (x_centered.T @ x_centered) / x_class.shape[0] #@ matrix mul operator
+        covmats.append(class_cov)
+
+
     return means,covmats
 
 def ldaTest(means,covmat,Xtest,ytest):
@@ -42,6 +82,32 @@ def ldaTest(means,covmat,Xtest,ytest):
     # ypred - N x 1 column vector indicating the predicted labels
 
     # IMPLEMENT THIS METHOD
+    # n is number of tests
+    n =Xtest.shape[0]
+    classes_num =means.shape[1]
+
+    comatin= inv(covmat) #inverse of covmat (covarience matrixx)
+
+    ypred = np.zeros(n) # intailize predicions and scores
+    verification= np.zeros((n, classes_num))
+
+        # this is the function ,math
+    for i in range(classes_num):
+        mean = means[:,i]
+        # linear discriminant function 
+        lindis_function1 = Xtest @ comatin @ mean 
+        lindis_function2= -0.5 * mean.T @ comatin @ mean
+        verification[:,i] = lindis_function1 + lindis_function2
+
+    # getting accuracy 
+
+    ypred= np.argmax(verification,axis=1) +1
+
+    acc = np.mean(ypred==ytest.flatten())
+
+    ypred= ypred.reshape(-1,1) 
+
+
     return acc,ypred
 
 def qdaTest(means,covmats,Xtest,ytest):
@@ -54,6 +120,31 @@ def qdaTest(means,covmats,Xtest,ytest):
     # ypred - N x 1 column vector indicating the predicted labels
 
     # IMPLEMENT THIS METHOD
+    #tests and number of classes
+    n= Xtest.shape[0]
+    classes = means.shape[1]
+    # iknitialization 
+    ypred= np.zeros(n)
+    verification = np.zeros((n,classes))
+
+    #discriminant score
+
+    for i in range(classes):
+        mean= means[:, i]
+        cov = covmats[i]
+        covinv= inv(cov)
+        function= -0.5 *np.log(det(cov))
+
+        for j in range(n):
+            xcenter= Xtest[j] - mean
+            quad= -0.5 * xcenter.T @ covinv @ xcenter
+            verification[j,i] = function +quad
+    
+    ypred = np.argmax(verification,axis=1) +1
+    acc = np.mean(ypred== ytest.flatten())
+    ypred= ypred.reshape(-1,1) 
+
+
     return acc,ypred
 
 def learnOLERegression(X,y):
@@ -105,6 +196,12 @@ def mapNonLinear(x,p):
     # Xp - (N x (p+1)) 
 	
     # IMPLEMENT THIS METHOD
+
+    matrixfeat= x.shape[0]
+    Xp= np.zeros((matrixfeat,p+1))
+
+    for i in range(p+1):
+        Xp[:, i] =np.power(x,i)
     return Xp
 
 # Main script
