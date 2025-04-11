@@ -231,9 +231,9 @@ def mapNonLinear(x,p):
 # # Problem 1
 # load the sample data                                                                 
 if sys.version_info.major == 2:
-    X,y,Xtest,ytest = pickle.load(open('basecode/sample.pickle','rb'))
+    X,y,Xtest,ytest = pickle.load(open('sample.pickle','rb'))
 else:
-    X,y,Xtest,ytest = pickle.load(open('basecode/sample.pickle','rb'),encoding = 'latin1')
+    X,y,Xtest,ytest = pickle.load(open('sample.pickle','rb'),encoding = 'latin1')
 
 # LDA
 means,covmat = ldaLearn(X,y)
@@ -270,9 +270,9 @@ plt.title('QDA')
 plt.show()
 # Problem 2
 if sys.version_info.major == 2:
-    X,y,Xtest,ytest = pickle.load(open('basecode/diabetes.pickle','rb'))
+    X,y,Xtest,ytest = pickle.load(open('diabetes.pickle','rb'))
 else:
-    X,y,Xtest,ytest = pickle.load(open('basecode/diabetes.pickle','rb'),encoding = 'latin1')
+    X,y,Xtest,ytest = pickle.load(open('diabetes.pickle','rb'),encoding = 'latin1')
 
 # add intercept
 X_i = np.concatenate((np.ones((X.shape[0],1)), X), axis=1)
@@ -351,8 +351,8 @@ lambda_opt = 0.06 # REPLACE THIS WITH lambda_opt estimated from Problem 3
 mses5_train = np.zeros((pmax,2))
 mses5 = np.zeros((pmax,2))
 for p in range(pmax):
-    Xd = mapNonLinear(X[:,1],p)
-    Xdtest = mapNonLinear(Xtest[:,1],p)
+    Xd = mapNonLinear(X[:,2],p)
+    Xdtest = mapNonLinear(Xtest[:,2],p)
     w_d1 = learnRidgeRegression(Xd,y,0)
     mses5_train[p,0] = testOLERegression(w_d1,Xd,y)
     mses5[p,0] = testOLERegression(w_d1,Xdtest,ytest)
@@ -370,4 +370,3 @@ plt.plot(range(pmax),mses5)
 plt.title('MSE for Test Data')
 plt.legend(('No Regularization','Regularization'))
 plt.show()
-
